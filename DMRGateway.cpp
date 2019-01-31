@@ -183,7 +183,7 @@ CDMRGateway::~CDMRGateway()
 
 	for (std::vector<CRewrite*>::iterator it = m_dmr2NetRewrites.begin(); it != m_dmr2NetRewrites.end(); ++it)
 			delete *it;
-	
+
 	for (std::vector<CRewrite*>::iterator it = m_dmr2RFRewrites.begin(); it != m_dmr2RFRewrites.end(); ++it)
 			delete *it;
 
@@ -247,7 +247,7 @@ int CDMRGateway::run()
 				::fprintf(stderr, "Could not get the mmdvm user, exiting\n");
 				return -1;
 			}
-			
+
 			uid_t mmdvm_uid = user->pw_uid;
 			gid_t mmdvm_gid = user->pw_gid;
 
@@ -261,8 +261,8 @@ int CDMRGateway::run()
 				::fprintf(stderr, "Could not set mmdvm UID, exiting\n");
 				return -1;
 			}
-		    
-			// Double check it worked (AKA Paranoia) 
+
+			// Double check it worked (AKA Paranoia)
 			if (setuid(0) != -1) {
 				::fprintf(stderr, "It's possible to regain root - something is wrong!, exiting\n");
 				return -1;
@@ -1059,6 +1059,7 @@ bool CDMRGateway::createDMRNetwork1()
 	}
 
 	std::vector<CPCRewriteStruct> pcRewrites = m_conf.getDMRNetwork1PCRewrites();
+	bool allowPcNetPass = true;
 	for (std::vector<CPCRewriteStruct>::const_iterator it = pcRewrites.begin(); it != pcRewrites.end(); ++it) {
 		if ((*it).m_range == 1)
 			LogInfo("    Rewrite RF: %u:%u -> %u:%u", (*it).m_fromSlot, (*it).m_fromId, (*it).m_toSlot, (*it).m_toId);
@@ -1068,6 +1069,16 @@ bool CDMRGateway::createDMRNetwork1()
 		CRewritePC* rewrite = new CRewritePC(m_dmr1Name, (*it).m_fromSlot, (*it).m_fromId, (*it).m_toSlot, (*it).m_toId, (*it).m_range);
 
 		m_dmr1RFRewrites.push_back(rewrite);
+
+		// If there are any specific private call outbound (to net) rewrites, allow all private calls inbound from net
+		if (allowPcNetPass) {
+			allowPcNetPass = false;
+			CPassAllPC* netPassAllPC1 = new CPassAllPC(m_dmr1Name, 1);
+			m_dmr1NetRewrites.push_back(netPassAllPC1);
+			CPassAllPC* netPassAllPC2 = new CPassAllPC(m_dmr1Name, 2);
+			m_dmr1NetRewrites.push_back(netPassAllPC2);
+			LogInfo("    Pass All PC from Net 1: ON");
+		}
 	}
 
 	std::vector<CTypeRewriteStruct> typeRewrites = m_conf.getDMRNetwork1TypeRewrites();
@@ -1186,6 +1197,7 @@ bool CDMRGateway::createDMRNetwork2()
 	}
 
 	std::vector<CPCRewriteStruct> pcRewrites = m_conf.getDMRNetwork2PCRewrites();
+	bool allowPcNetPass = true;
 	for (std::vector<CPCRewriteStruct>::const_iterator it = pcRewrites.begin(); it != pcRewrites.end(); ++it) {
 		if ((*it).m_range == 1)
 			LogInfo("    Rewrite RF: %u:%u -> %u:%u", (*it).m_fromSlot, (*it).m_fromId, (*it).m_toSlot, (*it).m_toId);
@@ -1195,6 +1207,16 @@ bool CDMRGateway::createDMRNetwork2()
 		CRewritePC* rewrite = new CRewritePC(m_dmr2Name, (*it).m_fromSlot, (*it).m_fromId, (*it).m_toSlot, (*it).m_toId, (*it).m_range);
 
 		m_dmr2RFRewrites.push_back(rewrite);
+
+		// If there are any specific private call outbound (to net) rewrites, allow all private calls inbound from net
+		if (allowPcNetPass) {
+			allowPcNetPass = false;
+			CPassAllPC* netPassAllPC1 = new CPassAllPC(m_dmr2Name, 1);
+			m_dmr2NetRewrites.push_back(netPassAllPC1);
+			CPassAllPC* netPassAllPC2 = new CPassAllPC(m_dmr2Name, 2);
+			m_dmr2NetRewrites.push_back(netPassAllPC2);
+			LogInfo("    Pass All PC from Net 2: ON");
+		}
 	}
 
 	std::vector<CTypeRewriteStruct> typeRewrites = m_conf.getDMRNetwork2TypeRewrites();
@@ -1313,6 +1335,7 @@ bool CDMRGateway::createDMRNetwork3()
 	}
 
 	std::vector<CPCRewriteStruct> pcRewrites = m_conf.getDMRNetwork3PCRewrites();
+	bool allowPcNetPass = true;
 	for (std::vector<CPCRewriteStruct>::const_iterator it = pcRewrites.begin(); it != pcRewrites.end(); ++it) {
 		if ((*it).m_range == 1)
 			LogInfo("    Rewrite RF: %u:%u -> %u:%u", (*it).m_fromSlot, (*it).m_fromId, (*it).m_toSlot, (*it).m_toId);
@@ -1322,6 +1345,16 @@ bool CDMRGateway::createDMRNetwork3()
 		CRewritePC* rewrite = new CRewritePC(m_dmr3Name, (*it).m_fromSlot, (*it).m_fromId, (*it).m_toSlot, (*it).m_toId, (*it).m_range);
 
 		m_dmr3RFRewrites.push_back(rewrite);
+
+		// If there are any specific private call outbound (to net) rewrites, allow all private calls inbound from net
+		if (allowPcNetPass) {
+			allowPcNetPass = false;
+			CPassAllPC* netPassAllPC1 = new CPassAllPC(m_dmr3Name, 1);
+			m_dmr3NetRewrites.push_back(netPassAllPC1);
+			CPassAllPC* netPassAllPC2 = new CPassAllPC(m_dmr3Name, 2);
+			m_dmr3NetRewrites.push_back(netPassAllPC2);
+			LogInfo("    Pass All PC from Net 3: ON");
+		}
 	}
 
 	std::vector<CTypeRewriteStruct> typeRewrites = m_conf.getDMRNetwork3TypeRewrites();
@@ -1429,7 +1462,7 @@ bool CDMRGateway::createXLXNetwork()
     if (m_xlxModule) {
         LogInfo("     Module: %c",m_xlxModule);
     }
-    
+
 
 	if (m_xlxStartup > 0U)
 		linkXLX(m_xlxStartup);
@@ -1593,3 +1626,4 @@ unsigned int CDMRGateway::getConfig(const std::string& name, unsigned char* buff
 
 	return (unsigned int)::strlen((char*)buffer);
 }
+
